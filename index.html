@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>일정 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════
+       CSS 변수 — Luxury Dark (Black & Gold)
+    ═══════════════════════════════════════ */
+    :root {
+      --bg-void:    #050505;
+      --bg-deep:    #0c0c0c;
+      --bg-panel:   #111111;
+      --bg-card:    #161616;
+      --bg-card-h:  #1e1a0f;
+
+      --gold:       #c9a84c;
+      --gold-lt:    #e8c97a;
+      --gold-dim:   #7a6228;
+      --gold-glow:  rgba(201,168,76,0.18);
+      --gold-line:  rgba(201,168,76,0.35);
+
+      --white:      #f2f0eb;
+      --gray-lt:    #888880;
+      --gray-dk:    #3a3a38;
+
+      --red:        #b03030;
+      --green:      #2e7d52;
+
+      --radius:     4px;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans:  'Noto Sans KR', sans-serif;
+    }
+
+    /* ── 리셋 ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 18px; }
+
+    body {
+      background: var(--bg-void);
+      color: var(--white);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── 배경 질감 ── */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201,168,76,0.07) 0%, transparent 70%),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(255,255,255,0.012) 2px,
+          rgba(255,255,255,0.012) 4px
+        );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ════════════════════════════════════════
+       레이아웃
+    ════════════════════════════════════════ */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px 60px;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 36px 0 20px;
+      border-bottom: 1px solid var(--gold-line);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-mark {
+      font-family: var(--font-serif);
+      font-weight: 300;
+      font-size: 0.72rem;
+      letter-spacing: 0.45em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 2rem;
+      color: var(--white);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    .brand-sub {
+      font-size: 0.82rem;
+      color: var(--gray-lt);
+      letter-spacing: 0.12em;
+      margin-top: 6px;
+    }
+
+    .header-meta {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    #clock {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      line-height: 1;
+    }
+
+    #date-display {
+      font-size: 0.85rem;
+      color: var(--gray-lt);
+      letter-spacing: 0.1em;
+    }
+
+    #last-updated {
+      font-size: 0.72rem;
+      color: var(--gold-dim);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── 상태바 ── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-dk);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--gold); }
+      50%       { opacity: 0.4; box-shadow: 0 0 3px var(--gold); }
+    }
+
+    .status-text {
+      font-size: 0.78rem;
+      color: var(--gold-dim);
+      letter-spacing: 0.1em;
+    }
+
+    .refresh-badge {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--gray-lt);
+    }
+
+    .refresh-badge span {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 1.5px solid var(--gold-dim);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 섹션 제목 ── */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 36px 0 18px;
+    }
+
+    .section-title h2 {
+      font-family: var(--font-serif);
+      font-weight: 400;
+      font-size: 1.15rem;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold-line), transparent);
+    }
+
+    /* ════════════════════════════════════════
+       오늘 일정 — 피쳐드 카드
+    ════════════════════════════════════════ */
+    #today-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .today-card {
+      display: grid;
+      grid-template-columns: 120px 1fr auto;
+      align-items: center;
+      gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--gold-line);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color .25s, background .25s;
+      animation: slideIn .4s ease both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .today-card:hover { background: var(--bg-card-h); border-color: var(--gold); }
+
+    .today-time-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 16px;
+      background: linear-gradient(180deg, #1a1400 0%, #0e0c00 100%);
+      border-right: 1px solid var(--gold-line);
+      min-height: 90px;
+    }
+
+    .today-time {
+      font-family: var(--font-serif);
+      font-size: 1.9rem;
+      font-weight: 300;
+      color: var(--gold);
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+
+    .today-ampm {
+      font-size: 0.72rem;
+      color: var(--gold-dim);
+      letter-spacing: 0.15em;
+      margin-top: 4px;
+    }
+
+    .today-body { padding: 18px 24px; }
+
+    .today-title {
+      font-family: var(--font-serif);
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .today-meta {
+      display: flex;
+      gap: 18px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .today-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--gray-lt);
+    }
+
+    .meta-icon {
+      font-size: 0.9rem;
+      opacity: 0.6;
+    }
+
+    .today-note-col {
+      padding: 18px 22px 18px 0;
+      min-width: 160px;
+      max-width: 220px;
+    }
+
+    .today-note-text {
+      font-size: 0.82rem;
+      color: var(--gold-dim);
+      line-height: 1.5;
+      font-style: italic;
+      border-left: 2px solid var(--gold-dim);
+      padding-left: 12px;
+    }
+
+    /* ── 상태 배지 ── */
+    .badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      padding: 3px 10px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+
+    .badge-now  { background: var(--gold);  color: #000; }
+    .badge-next { background: var(--bg-card); color: var(--gold); border: 1px solid var(--gold-dim); }
+    .badge-done { background: var(--gray-dk); color: var(--gray-lt); }
+
+    /* ════════════════════════════════════════
+       전체 일정 — 테이블 스타일
+    ════════════════════════════════════════ */
+    #schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    #schedule-table thead tr {
+      border-bottom: 1px solid var(--gold-line);
+    }
+
+    #schedule-table thead th {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      padding: 10px 16px;
+      text-align: left;
+    }
+
+    #schedule-table tbody tr {
+      border-bottom: 1px solid var(--gray-dk);
+      transition: background .2s;
+    }
+
+    #schedule-table tbody tr:hover { background: var(--bg-card); }
+
+    #schedule-table tbody tr.row-today { background: rgba(201,168,76,0.04); }
+    #schedule-table tbody tr.row-today:hover { background: rgba(201,168,76,0.08); }
+
+    #schedule-table td {
+      padding: 16px;
+      font-size: 1rem;
+      color: var(--white);
+      vertical-align: middle;
+    }
+
+    .td-date {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--gray-lt);
+      white-space: nowrap;
+    }
+
+    .td-date-today {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .td-time {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    .td-title { font-size: 1.05rem; font-weight: 500; }
+    .td-location { font-size: 0.9rem; color: var(--gray-lt); }
+    .td-note { font-size: 0.85rem; color: var(--gold-dim); font-style: italic; }
+
+    /* ── 빈 상태 ── */
+    .empty-state {
+      text-align: center;
+      padding: 64px 0;
+      opacity: 0.55;
+    }
+
+    .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .empty-state p { font-size: 0.95rem; color: var(--gray-lt); letter-spacing: 0.1em; }
+
+    /* ── 스크롤바 ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 10px; }
+
+    /* ── 반응형 (태블릿) ── */
+    @media (max-width: 768px) {
+      html { font-size: 17px; }
+      .wrapper { padding: 0 20px 40px; }
+      header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .header-meta { align-items: flex-start; }
+      #clock { font-size: 1.9rem; }
+      .today-card { grid-template-columns: 90px 1fr; }
+      .today-note-col { display: none; }
+      #schedule-table thead th:nth-child(5),
+      #schedule-table td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrapper">
+
+  <!-- ── 헤더 ── -->
+  <header>
+    <div class="brand">
+      <span class="brand-mark">Porsche Taycan &nbsp;·&nbsp; Private</span>
+      <h1 class="brand-title">일정 대시보드</h1>
+      <p class="brand-sub">SCHEDULE DASHBOARD</p>
+    </div>
+    <div class="header-meta">
+      <div id="clock">00:00:00</div>
+      <div id="date-display"></div>
+      <div id="last-updated">마지막 동기화 중...</div>
+    </div>
+  </header>
+
+  <!-- ── 상태바 ── -->
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <span class="status-text">LIVE — 1분마다 자동 업데이트</span>
+    <div class="refresh-badge">
+      <span></span>
+      <span id="next-refresh">60s</span>
+    </div>
+  </div>
+
+  <!-- ── 오늘 일정 ── -->
+  <div class="section-title">
+    <h2>오늘의 일정</h2>
+  </div>
+  <div id="today-list">
+    <div class="empty-state">
+      <div class="empty-icon">◎</div>
+      <p>데이터를 불러오는 중입니다…</p>
+    </div>
+  </div>
+
+  <!-- ── 전체 일정 ── -->
+  <div class="section-title" style="margin-top: 48px;">
+    <h2>전체 일정</h2>
+  </div>
+  <table id="schedule-table">
+    <thead>
+      <tr>
+        <th>날짜</th>
+        <th>시간</th>
+        <th>제목</th>
+        <th>장소</th>
+        <th>비고</th>
+      </tr>
+    </thead>
+    <tbody id="schedule-body">
+      <tr><td colspan="5" style="text-align:center; padding:40px; color:var(--gray-lt);">로딩 중…</td></tr>
+    </tbody>
+  </table>
+
+</div><!-- /wrapper -->
+
+<script>
+  /* ══════════════════════════════════════════
+     유틸
+  ══════════════════════════════════════════ */
+  const today = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+
+  const toMin = (timeStr) => {
+    if (!timeStr) return -1;
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const nowMin = () => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  };
+
+  const fmtAmPm = (timeStr) => {
+    if (!timeStr) return '';
+    const [h, m] = timeStr.split(':').map(Number);
+    return h < 12 ? 'AM' : 'PM';
+  };
+
+  /* ── 시계 ── */
+  const KR_DAYS = ['일','월','화','수','목','금','토'];
+  const KR_MONTHS = ['1월','2월','3월','4월','5월','6월',
+                     '7월','8월','9월','10월','11월','12월'];
+
+  function tickClock() {
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    const s  = String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${h}:${mi}:${s}`;
+    document.getElementById('date-display').textContent =
+      `${d.getFullYear()}년 ${KR_MONTHS[d.getMonth()]} ${d.getDate()}일 (${KR_DAYS[d.getDay()]})`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  /* ── 카운트다운 ── */
+  let countdown = 60;
+  setInterval(() => {
+    countdown--;
+    if (countdown <= 0) countdown = 60;
+    document.getElementById('next-refresh').textContent = `${countdown}s`;
+  }, 1000);
+
+  /* ══════════════════════════════════════════
+     데이터 로드 & 렌더
+  ══════════════════════════════════════════ */
+  async function loadSchedule() {
+    try {
+      // 캐시 방지: 타임스탬프 파라미터 추가
+      const res = await fetch(`schedule.json?_=${Date.now()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const items = Array.isArray(data) ? data : (data.items || []);
+      const updatedAt = data.updated_at || '';
+
+      document.getElementById('last-updated').textContent =
+        updatedAt ? `마지막 업데이트: ${updatedAt}` : '동기화 완료';
+
+      renderToday(items);
+      renderAll(items);
+    } catch (e) {
+      console.error('일정 로드 실패:', e);
+      document.getElementById('last-updated').textContent = '⚠ 데이터 로드 실패';
+    }
+  }
+
+  /* ── 오늘 일정 렌더 ── */
+  function renderToday(items) {
+    const t = today();
+    const nm = nowMin();
+    const todayItems = items
+      .filter(x => x.date === t)
+      .sort((a, b) => toMin(a.time) - toMin(b.time));
+
+    const container = document.getElementById('today-list');
+
+    if (todayItems.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">◎</div>
+          <p>오늘 예정된 일정이 없습니다</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = todayItems.map((item, i) => {
+      const start = toMin(item.time);
+      let badge = '';
+      if (start <= nm && nm < start + 60) badge = '<span class="badge badge-now">NOW</span>';
+      else if (start > nm && i === todayItems.findIndex(x => toMin(x.time) > nm))
+        badge = '<span class="badge badge-next">NEXT</span>';
+      else if (start + 60 <= nm) badge = '<span class="badge badge-done">완료</span>';
+
+      const [hh, mm] = (item.time || '00:00').split(':');
+      const ampm = Number(hh) < 12 ? 'AM' : 'PM';
+
+      return `
+      <div class="today-card" style="animation-delay:${i * 0.07}s">
+        <div class="today-time-col">
+          <div class="today-time">${item.time || '—'}</div>
+          <div class="today-ampm">${ampm}</div>
+        </div>
+        <div class="today-body">
+          <div class="today-title">${esc(item.title)}${badge}</div>
+          <div class="today-meta">
+            ${item.location ? `<span class="today-meta-item"><span class="meta-icon">📍</span>${esc(item.location)}</span>` : ''}
+          </div>
+        </div>
+        ${item.note ? `<div class="today-note-col"><div class="today-note-text">${esc(item.note)}</div></div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  /* ── 전체 일정 렌더 ── */
+  function renderAll(items) {
+    const t = today();
+    const sorted = [...items].sort((a, b) => {
+      const da = (a.date || '') + (a.time || '');
+      const db = (b.date || '') + (b.time || '');
+      return da.localeCompare(db);
+    });
+
+    const tbody = document.getElementById('schedule-body');
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:48px; color:var(--gray-lt); font-style:italic;">등록된 일정이 없습니다</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sorted.map(item => {
+      const isToday = item.date === t;
+      return `
+      <tr class="${isToday ? 'row-today' : ''}">
+        <td class="td-date ${isToday ? 'td-date-today' : ''}">${esc(item.date || '—')}</td>
+        <td class="td-time">${esc(item.time || '—')}</td>
+        <td class="td-title">${esc(item.title || '')}</td>
+        <td class="td-location">${esc(item.location || '')}</td>
+        <td class="td-note">${esc(item.note || '')}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── HTML 이스케이프 ── */
+  const esc = (s) => String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  /* ── 최초 로드 & 1분 자동 갱신 ── */
+  loadSchedule();
+  setInterval(loadSchedule, 60_000);
+</script>
+</body>
+</html>

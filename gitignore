@@ -1,0 +1,41 @@
+# ──────────────────────────────────────────
+#  민감 정보 & 불필요 파일 제외
+# ──────────────────────────────────────────
+
+# 환경 변수 / 토큰
+.env
+.env.local
+*.token
+secrets.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code
+.vscode/settings.json
+
+# 임시 파일
+*.log
+*.tmp
+*.bak
